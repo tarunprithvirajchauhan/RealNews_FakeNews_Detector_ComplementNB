@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VeriFact AI - Fake News Detection Hub | Project Beta</title>
+  <meta name="description" content="AI-Powered Fake News Detection System utilizing ComplementNB, TF-IDF Vectorization, and Noisy Data Robustness Analysis.">
+  <link rel="stylesheet" href="/static/styles.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="brand-icon">🛡️</div>
+        <div>
+          <h1 class="brand-title">VeriFact AI</h1>
+          <p class="brand-subtitle">Project Beta | Advanced Fake News Detection & Robustness Platform</p>
+        </div>
+      </div>
+      <div class="header-status">
+        <button id="themeToggleBtn" class="theme-toggle-btn" onclick="toggleTheme()">
+          <span id="themeIcon">🌙</span> <span id="themeLabel">Dark Mode</span>
+        </button>
+        <div class="status-badge" id="backendStatusBadge">
+          <span class="status-dot"></span>
+          <span id="statusText">Connecting Server...</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Quick Stats Grid -->
+    <div class="stats-grid">
+      <div class="stat-card">
+        <div class="stat-icon cyan">📊</div>
+        <div>
+          <div class="stat-value">44,898</div>
+          <div class="stat-label">Evaluated Articles (Kaggle)</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon purple">⚡</div>
+        <div>
+          <div class="stat-value">95.96%</div>
+          <div class="stat-label">Noisy Model Accuracy</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon emerald">🎯</div>
+        <div>
+          <div class="stat-value">0.9595</div>
+          <div class="stat-label">5-Fold CV F1-Macro Score</div>
+        </div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-icon amber">🔤</div>
+        <div>
+          <div class="stat-value">10,000</div>
+          <div class="stat-label">TF-IDF N-Gram Features</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Navigation Tabs -->
+    <nav class="tabs-navigation">
+      <button class="nav-tab active" data-tab="tab-predictor">📰 Live Predictor</button>
+      <button class="nav-tab" data-tab="tab-sandbox">🧪 Noise Sandbox</button>
+      <button class="nav-tab" data-tab="tab-analytics">📊 Analytics & Metrics</button>
+      <button class="nav-tab" data-tab="tab-batch">📁 Batch Scanner</button>
+      <button class="nav-tab" data-tab="tab-docs">📖 Architecture & Reports</button>
+    </nav>
+
+    <!-- TAB 1: LIVE PREDICTOR -->
+    <main id="tab-predictor" class="tab-content active">
+      <div class="glass-panel">
+        <h2 class="panel-title"><span>📰</span> Real-Time Fake News Detection</h2>
+        <p class="panel-description">Analyze any news article or headline using ComplementNB models with TF-IDF feature extraction.</p>
+
+        <!-- Presets -->
+        <div class="form-group">
+          <label class="form-label">Quick Load Sample Articles:</label>
+          <div class="presets-bar" id="presetsContainer">
+            <button class="btn-preset" onclick="loadSample('real_politics')">🔵 Official Reuters News</button>
+            <button class="btn-preset" onclick="loadSample('fake_conspiracy')">🔴 Sensational Clickbait</button>
+            <button class="btn-preset" onclick="loadSample('satire_humor')">🟡 Satire & Parody</button>
+            <button class="btn-preset" onclick="loadSample('noisy_post')">⚡ Typos & Social Rumor</button>
+          </div>
+        </div>
+
+        <div class="form-group">
+          <label for="articleTitle" class="form-label">Article Title / Headline:</label>
+          <input type="text" id="articleTitle" class="form-input" placeholder="e.g. U.S. Senate passes bipartisan infrastructure bill...">
+        </div>
+
+        <div class="form-group">
+          <label for="articleText" class="form-label">Article Body Text:</label>
+          <textarea id="articleText" class="form-textarea" placeholder="Paste full article text here..."></textarea>
+        </div>
+
+        <div class="noise-controls-grid">
+          <div class="form-group">
+            <label for="modelMode" class="form-label">Classification Model Mode:</label>
+            <select id="modelMode" class="form-select">
+              <option value="both">⚡ Comparative Mode (Run Clean & Noisy Models Side-by-Side)</option>
+              <option value="clean">🔹 Clean Pipeline Model (Trained on Clean Data)</option>
+              <option value="noisy">🔸 Noisy Pipeline Model (Trained on Corrupted Data)</option>
+            </select>
+          </div>
+          <div style="display: flex; align-items: flex-end; margin-bottom: 20px;">
+            <button id="btnPredict" class="btn-primary" onclick="runPrediction()">
+              <span>🔍</span> Analyze Authenticity
+            </button>
+          </div>
+        </div>
+
+        <!-- Predictor Results Container -->
+        <div id="predictorResults" class="results-grid" style="display: none;"></div>
+      </div>
+    </main>
+
+    <!-- TAB 2: NOISE SANDBOX -->
+    <main id="tab-sandbox" class="tab-content">
+      <div class="glass-panel">
+        <h2 class="panel-title"><span>🧪</span> Noise Injection & Robustness Sandbox</h2>
+        <p class="panel-description">Simulate typos, missing characters, and dropped words to evaluate model resiliency against noisy real-world text.</p>
+
+        <div class="noise-controls-grid">
+          <div>
+            <div class="form-group">
+              <label class="form-label">Noise Corruption Intensity: <span id="noiseVal" style="color:var(--accent-cyan)">15%</span></label>
+              <input type="range" id="noiseSlider" class="range-slider" min="0.05" max="0.40" step="0.05" value="0.15" oninput="document.getElementById('noiseVal').innerText = Math.round(this.value*100)+'%'">
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Active Noise Generators:</label>
+              <div style="display: flex; gap: 16px; flex-wrap: wrap; margin-top: 8px;">
+                <label style="font-size:13px; cursor:pointer"><input type="checkbox" id="chkSwap" checked> Adjacent Char Swap (typo)</label>
+                <label style="font-size:13px; cursor:pointer"><input type="checkbox" id="chkDropChar" checked> Character Omission</label>
+                <label style="font-size:13px; cursor:pointer"><input type="checkbox" id="chkDropWord" checked> Word Omission</label>
+              </div>
+            </div>
+          </div>
+
+          <div style="display: flex; align-items: center; justify-content: flex-end;">
+            <button class="btn-primary" onclick="runNoiseSimulation()">
+              <span>⚡</span> Inject Noise & Compare Models
+            </button>
+          </div>
+        </div>
+
+        <div id="sandboxResults" style="display: none; margin-top: 24px;">
+          <div class="noise-controls-grid" style="margin-bottom: 24px;">
+            <div>
+              <h4 style="font-size:14px; color:var(--text-secondary); margin-bottom:8px;">ORIGINAL TEXT:</h4>
+              <div id="origTextPreview" class="accordion-box"></div>
+            </div>
+            <div>
+              <h4 style="font-size:14px; color:var(--accent-amber); margin-bottom:8px;">CORRUPTED NOISY TEXT (Generated):</h4>
+              <div id="noisyTextPreview" class="accordion-box" style="border-color: rgba(245, 158, 11, 0.4);"></div>
+            </div>
+          </div>
+
+          <h3 style="font-family: var(--font-heading); font-size:18px; margin-bottom:16px;">Model Performance Under Text Degradation:</h3>
+          <div id="sandboxComparisonGrid" class="results-grid"></div>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 3: ANALYTICS & METRICS -->
+    <main id="tab-analytics" class="tab-content">
+      <div class="glass-panel">
+        <h2 class="panel-title"><span>📊</span> Comprehensive Model Metrics & Performance</h2>
+        <p class="panel-description">Detailed experimental metrics comparing Clean Model vs Noisy Model trained on ~44,000 news articles.</p>
+
+        <div style="max-width: 800px; margin: 0 auto 30px auto;">
+          <canvas id="metricsChart" height="280"></canvas>
+        </div>
+
+        <div class="custom-table-container" style="margin-bottom: 30px;">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Model Name</th>
+                <th>Training Corpus</th>
+                <th>Evaluation Test Set</th>
+                <th>Accuracy</th>
+                <th>Precision (Macro)</th>
+                <th>Recall (Macro)</th>
+                <th>F1-Macro Score</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td><strong>MultinomialNB (Baseline)</strong></td>
+                <td>Clean (44k)</td>
+                <td>Clean Test Holdout</td>
+                <td>94.85%</td>
+                <td>94.80%</td>
+                <td>94.90%</td>
+                <td>0.9485</td>
+              </tr>
+              <tr style="background: rgba(56, 189, 248, 0.05);">
+                <td><strong>ComplementNB (Clean Model)</strong></td>
+                <td>Clean (44k)</td>
+                <td>Noisy Test Holdout</td>
+                <td>95.89%</td>
+                <td>95.87%</td>
+                <td>95.91%</td>
+                <td><strong>0.9588</strong></td>
+              </tr>
+              <tr style="background: rgba(16, 185, 129, 0.08);">
+                <td><strong>Noisy ComplementNB (Tuned)</strong></td>
+                <td>10% Noisy (44k)</td>
+                <td>Noisy Test Holdout</td>
+                <td><strong>95.96%</strong></td>
+                <td><strong>95.95%</strong></td>
+                <td><strong>95.98%</strong></td>
+                <td><strong>0.9595</strong></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <h3 class="panel-title" style="font-size:18px; margin-top:20px;">Visual Outputs & Diagnostic Artifacts</h3>
+        <div class="gallery-grid">
+          <div class="gallery-card">
+            <img src="/outputs/confusion_matrix.png" alt="Clean Confusion Matrix" class="gallery-img" onclick="openLightbox(this.src)">
+            <div class="gallery-title">Confusion Matrix - Clean Model</div>
+          </div>
+          <div class="gallery-card">
+            <img src="/outputs/noisy_confusion_matrix.png" alt="Noisy Confusion Matrix" class="gallery-img" onclick="openLightbox(this.src)">
+            <div class="gallery-title">Confusion Matrix - Noisy Model</div>
+          </div>
+          <div class="gallery-card">
+            <img src="/outputs/roc_curve.png" alt="ROC Curves Comparison" class="gallery-img" onclick="openLightbox(this.src)">
+            <div class="gallery-title">ROC Curve Comparison (AUC ~0.99)</div>
+          </div>
+          <div class="gallery-card">
+            <img src="/outputs/learning_curve.png" alt="Learning Curve" class="gallery-img" onclick="openLightbox(this.src)">
+            <div class="gallery-title">Learning Curve (Cross-Validation)</div>
+          </div>
+          <div class="gallery-card">
+            <img src="/outputs/wordcloud_fake.png" alt="Fake Word Cloud" class="gallery-img" onclick="openLightbox(this.src)">
+            <div class="gallery-title">Word Cloud - FAKE News Corpus</div>
+          </div>
+          <div class="gallery-card">
+            <img src="/outputs/wordcloud_real.png" alt="Real Word Cloud" class="gallery-img" onclick="openLightbox(this.src)">
+            <div class="gallery-title">Word Cloud - REAL News Corpus</div>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 4: BATCH SCANNER -->
+    <main id="tab-batch" class="tab-content">
+      <div class="glass-panel">
+        <h2 class="panel-title"><span>📁</span> Batch News Article Scanner</h2>
+        <p class="panel-description">Upload multiple headlines or paste news excerpts to process bulk predictions concurrently.</p>
+
+        <div class="form-group">
+          <label for="batchInput" class="form-label">Paste Multiple Articles (One per line):</label>
+          <textarea id="batchInput" class="form-textarea" placeholder="Paste article headlines or text snippets here, one per line..."></textarea>
+        </div>
+
+        <div style="display: flex; gap: 16px; margin-bottom: 24px;">
+          <button class="btn-primary" onclick="runBatchScan()">
+            <span>⚡</span> Process Batch
+          </button>
+          <button class="btn-secondary" onclick="loadBatchSamples()">
+            <span>📋</span> Load 10 Sample Headlines
+          </button>
+        </div>
+
+        <div id="batchResultsContainer" style="display: none;">
+          <div class="stats-grid" style="margin-bottom: 20px;">
+            <div class="stat-card">
+              <div class="stat-icon cyan">📦</div>
+              <div>
+                <div class="stat-value" id="batchTotal">0</div>
+                <div class="stat-label">Articles Processed</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon emerald">✅</div>
+              <div>
+                <div class="stat-value" id="batchReal">0</div>
+                <div class="stat-label">Detected Real (% )</div>
+              </div>
+            </div>
+            <div class="stat-card">
+              <div class="stat-icon rose">🚨</div>
+              <div>
+                <div class="stat-value" id="batchFake">0</div>
+                <div class="stat-label">Detected Fake (% )</div>
+              </div>
+            </div>
+          </div>
+
+          <div class="custom-table-container">
+            <table class="custom-table">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Article Preview</th>
+                  <th>Verdict</th>
+                  <th>Confidence</th>
+                  <th>Fake Prob</th>
+                  <th>Real Prob</th>
+                </tr>
+              </thead>
+              <tbody id="batchTableBody"></tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+    </main>
+
+    <!-- TAB 5: ARCHITECTURE & DOCS -->
+    <main id="tab-docs" class="tab-content">
+      <div class="glass-panel">
+        <h2 class="panel-title"><span>📖</span> System Architecture & Project Reports</h2>
+        <p class="panel-description">Technical details, data flow pipeline, and downloadable PDF reports produced by Team Beta.</p>
+
+        <h3 class="panel-title" style="font-size:18px; margin-bottom:16px;">Download Project Documentation (PDFs)</h3>
+        <div class="pdf-list" style="margin-bottom: 30px;">
+          <div class="pdf-card">
+            <div>
+              <div class="pdf-icon">📄</div>
+              <div class="pdf-title">Comparative Analysis Report</div>
+              <div class="pdf-desc">Side-by-side evaluation of Clean vs Noisy pipeline performance.</div>
+            </div>
+            <a href="/docs/Comparative_Report.pdf" target="_blank" class="btn-secondary">Download PDF</a>
+          </div>
+
+          <div class="pdf-card">
+            <div>
+              <div class="pdf-icon">📘</div>
+              <div class="pdf-title">Comprehensive Project Report</div>
+              <div class="pdf-desc">Full project documentation covering dataset EDA, TF-IDF tuning, and NB derivations.</div>
+            </div>
+            <a href="/docs/Fake_News_Detection_Comprehensive_Project_Report.pdf" target="_blank" class="btn-secondary">Download PDF</a>
+          </div>
+
+          <div class="pdf-card">
+            <div>
+              <div class="pdf-icon">📗</div>
+              <div class="pdf-title">Noisy Pipeline Report</div>
+              <div class="pdf-desc">In-depth study on noise generation, typo resiliency, and model generalization.</div>
+            </div>
+            <a href="/docs/Noisy_Project_Report.pdf" target="_blank" class="btn-secondary">Download PDF</a>
+          </div>
+
+          <div class="pdf-card">
+            <div>
+              <div class="pdf-icon">📙</div>
+              <div class="pdf-title">Master Project Summary</div>
+              <div class="pdf-desc">Executive summary of team deliverables, accuracy gains, and production readiness.</div>
+            </div>
+            <a href="/docs/Project_Report.pdf" target="_blank" class="btn-secondary">Download PDF</a>
+          </div>
+        </div>
+
+        <h3 class="panel-title" style="font-size:18px; margin-bottom:16px;">End-to-End Pipeline Architecture</h3>
+        <div class="accordion-box" style="font-size:14px; max-height:none; background: rgba(15,23,42,0.6); padding:20px;">
+          <p><strong>1. Data Ingestion:</strong> Kaggle Fake & Real News Dataset (~44.8k articles) merged & labeled (0=Real, 1=Fake).</p>
+          <p><strong>2. Feature Fusion:</strong> Concatenates Title + Body text into single <code>title_text</code> sequence.</p>
+          <p><strong>3. Advanced Preprocessing:</strong> Lowercasing, URL removal, non-alphanumeric strip, NLTK Lemmatizer, Stopwords filter.</p>
+          <p><strong>4. Vectorization:</strong> TF-IDF Vectorizer with unigrams + bigrams (10,000 max features, sublinear TF scaling).</p>
+          <p><strong>5. Model Training:</strong> ComplementNB model with GridSearchCV tuning over hyperparameter &alpha; &in; [0.01, 5.0].</p>
+          <p><strong>6. Robustness Evaluation:</strong> 10% Noise injection pipeline simulating character swaps, omissions, and word drops.</p>
+        </div>
+      </div>
+    </main>
+  </div>
+
+  <!-- Lightbox Modal -->
+  <div id="lightboxModal" class="modal-overlay" onclick="closeLightbox()">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <span class="modal-close" onclick="closeLightbox()">&times;</span>
+      <img id="lightboxImg" src="" alt="Zoomed view">
+    </div>
+  </div>
+
+  <script src="/static/app.js"></script>
+</body>
+</html>
