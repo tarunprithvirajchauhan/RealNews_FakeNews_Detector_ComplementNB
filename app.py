@@ -31,7 +31,14 @@ app = Flask(__name__, static_folder=str(SRC_DIR / 'static'), template_folder=str
 CORS(app)
 
 # Load Models & Vectorizers
-MODELS_DIR = BASE_DIR / 'models'
+def get_models_dir():
+    src_models = SRC_DIR / 'models'
+    base_models = BASE_DIR / 'models'
+    if (src_models / 'complement_nb.pkl').exists():
+        return src_models
+    return base_models
+
+MODELS_DIR = get_models_dir()
 CLEAN_MODEL_PATH = MODELS_DIR / 'complement_nb.pkl'
 CLEAN_VEC_PATH = MODELS_DIR / 'tfidf_vectorizer.pkl'
 NOISY_MODEL_PATH = MODELS_DIR / 'noisy_complement_nb.pkl'
@@ -46,14 +53,25 @@ models = {
 
 def load_all_models():
     try:
-        if CLEAN_MODEL_PATH.exists() and CLEAN_VEC_PATH.exists():
-            models['clean_model'] = joblib.load(CLEAN_MODEL_PATH)
-            models['clean_vec'] = joblib.load(CLEAN_VEC_PATH)
-            print("Loaded Clean ComplementNB Model & TF-IDF Vectorizer.")
-        if NOISY_MODEL_PATH.exists() and NOISY_VEC_PATH.exists():
-            models['noisy_model'] = joblib.load(NOISY_MODEL_PATH)
-            models['noisy_vec'] = joblib.load(NOISY_VEC_PATH)
-            print("Loaded Noisy ComplementNB Model & TF-IDF Vectorizer.")
+        current_dir = get_models_dir()
+        clean_m = current_dir / 'complement_nb.pkl'
+        clean_v = current_dir / 'tfidf_vectorizer.pkl'
+        noisy_m = current_dir / 'noisy_complement_nb.pkl'
+        noisy_v = current_dir / 'noisy_tfidf_vectorizer.pkl'
+
+        if clean_m.exists() and clean_v.exists():
+            models['clean_model'] = joblib.load(clean_m)
+            models['clean_vec'] = joblib.load(clean_v)
+            print(f"Loaded Clean ComplementNB Model & TF-IDF Vectorizer from {current_dir}.")
+        else:
+            print(f"Warning: Clean model files missing in {current_dir}")
+
+        if noisy_m.exists() and noisy_v.exists():
+            models['noisy_model'] = joblib.load(noisy_m)
+            models['noisy_vec'] = joblib.load(noisy_v)
+            print(f"Loaded Noisy ComplementNB Model & TF-IDF Vectorizer from {current_dir}.")
+        else:
+            print(f"Warning: Noisy model files missing in {current_dir}")
     except Exception as e:
         print(f"Error loading models: {e}")
 
